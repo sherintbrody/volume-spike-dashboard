@@ -183,8 +183,18 @@ def render_table_streamlit(name, rows):
         "Sentiment"
     ]
 
+    # Convert to DataFrame
     df = pd.DataFrame(rows, columns=columns)
+
+    # Drop rows where all values are empty or NaN
+    df = df.dropna(how="all")
+
+    # Optional: Drop rows where key fields like Volume or Time are missing
+    df = df[df["Volume"] > 0]  # Or use df[df["Time (IST)"].notna()]
+
+    # Display last 15 clean rows
     st.dataframe(df.tail(15), use_container_width=True, height=800)
+
 
 
 

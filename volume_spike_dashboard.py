@@ -186,18 +186,19 @@ def run_volume_check():
         code = INSTRUMENTS[name]
         rows, spikes = process_instrument(name, code)
         if rows:
-            render_table_streamlit(name, rows)
+    render_table_streamlit(name, rows[-15:])
+
         if spikes:
             all_spike_msgs.extend(spikes)
 
-    # Display and optionally send alerts
+    # Display and send alerts
     if all_spike_msgs:
         msg = "⚡ Spikes Detected Streamlit:\n" + "\n".join(all_spike_msgs)
         st.warning(msg)
-        if enable_alerts:
-            send_telegram_alert(msg)
+        send_telegram_alert(msg)
     else:
         st.info("ℹ️ No spikes in the last two candles.")
+
 
 
 # ====== MAIN ======

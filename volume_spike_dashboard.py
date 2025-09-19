@@ -189,6 +189,14 @@ def render_table_streamlit(name, rows):
     df = pd.DataFrame(trimmed_rows, columns=columns)
 
     st.dataframe(df, use_container_width=True, height=800)
+    csv = df.to_csv(index=False).encode('utf-8')
+st.download_button(
+    label="📥 Export to CSV",
+    data=csv,
+    file_name=f"{name}_volume_spikes.csv",
+    mime="text/csv"
+)
+
 
 
 

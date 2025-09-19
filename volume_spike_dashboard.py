@@ -8,8 +8,8 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
 # ====== CONFIG ======
-API_KEY = "your_oanda_api_key"
-ACCOUNT_ID = "your_oanda_account_id"
+API_KEY = "5a0f5c6147a2bd7c832d63a6252f0c01-041561ca55b1549327e8c00f3d645f13"
+ACCOUNT_ID = "101-004-37091392-001"
 BASE_URL = "https://api-fxpractice.oanda.com/v3"
 
 INSTRUMENTS = {
@@ -20,8 +20,8 @@ INSTRUMENTS = {
 
 THRESHOLD_MULTIPLIER = 1.4
 
-TELEGRAM_BOT_TOKEN = "your_telegram_bot_token"
-TELEGRAM_CHAT_ID = "your_telegram_chat_id"
+TELEGRAM_BOT_TOKEN = "7860254495:AAG2s2X6M30XDWSHyGGqg2aJmn0xbtg_DfQ"
+TELEGRAM_CHAT_ID = "7598801380"
 
 IST = pytz.timezone("Asia/Kolkata")
 UTC = pytz.utc

@@ -221,16 +221,17 @@ def run_volume_check():
         if spikes:
             all_spike_msgs.extend(spikes)
 
-    # Display and send alerts
-    if all_spike_msgs:
-     msg_lines = [f"*⚡ Volume Spike Alert — {bucket_minutes} min bucket*"]
-for line in all_spike_msgs:
-         msg_lines.append(f"• {line}")
-            msg = "\n".join(msg_lines)
-        st.warning(msg)
-        send_telegram_alert(msg)
-    else:
-        st.info("ℹ️ No spikes in the last two candles.")
+# Display and send alerts
+if all_spike_msgs:
+    msg_lines = [f"*⚡ Volume Spike Alert — {bucket_minutes} min bucket*"]
+    for line in all_spike_msgs:
+        msg_lines.append(f"• {line}")
+    msg = "\n".join(msg_lines)
+    st.warning(msg)
+    send_telegram_alert(msg)
+else:
+    st.info("ℹ️ No spikes in the last two candles.")
+
 
 # ====== MAIN ======
 st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")

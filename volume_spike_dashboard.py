@@ -48,11 +48,16 @@ st_autorefresh(interval=refresh_ms, limit=None, key="volume-refresh")
 # ====== TELEGRAM ALERT ======
 def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message}
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
     try:
         requests.post(url, data=payload, timeout=10)
     except Exception as e:
         st.error(f"Telegram alert failed: {e}")
+
 
 # ====== OANDA DATA FETCH ======
 def fetch_candles(instrument_code, from_time, to_time):
@@ -166,7 +171,7 @@ def process_instrument(name, code, bucket_size_minutes):
 
         if c in last_two_candles and over:
             spikes_last_two.append(
-                f"{name} {t_ist.strftime('%I:%M %p')} spike — Vol {vol} ({spike_diff}) {sentiment}"
+                f"{name} {t_ist.strftime('%I:%M %p')} — Vol {vol} ({spike_diff}) {sentiment}"
             )
 
     return rows, spikes_last_two
@@ -218,7 +223,10 @@ def run_volume_check():
 
     # Display and send alerts
     if all_spike_msgs:
-        msg = "⚡ Spikes Detected Streamlit:\n" + "\n".join(all_spike_msgs)
+     msg_lines = [f"*⚡ Volume Spike Alert — {bucket_minutes} min bucket*"]
+for line in all_spike_msgs:
+         msg_lines.append(f"• {line}")
+            msg = "\n".join(msg_lines)
         st.warning(msg)
         send_telegram_alert(msg)
     else:

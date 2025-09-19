@@ -1,3 +1,4 @@
+python
 import requests
 import streamlit as st
 from datetime import datetime, timedelta, time
@@ -5,7 +6,6 @@ import pytz
 import pandas as pd
 from collections import defaultdict
 import wcwidth
-import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
 # ====== CONFIG ======
@@ -28,24 +28,58 @@ IST = pytz.timezone("Asia/Kolkata")
 UTC = pytz.utc
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
+# ====== INITIALIZE SESSION STATE ======
+if "selected_instruments" not in st.session_state:
+    st.session_state.selected_instruments = list(INSTRUMENTS.keys())
+
+if "refresh_minutes" not in st.session_state:
+    st.session_state.refresh_minutes = 5
+
+if "bucket_choice" not in st.session_state:
+    st.session_state.bucket_choice = "1 hour"
+
+if "enable_telegram_alerts" not in st.session_state:
+    st.session_state.enable_telegram_alerts = True
+
 # ====== SIDEBAR CONFIG ======
 st.sidebar.title("🔧 Settings")
 
-selected_instruments = st.sidebar.multiselect(
+st.sidebar.multiselect(
     "Select Instruments to Monitor",
     options=list(INSTRUMENTS.keys()),
-    default=list(INSTRUMENTS.keys())
+    default=st.session_state.selected_instruments,
+    key="selected_instruments"
 )
 
-refresh_minutes = st.sidebar.slider("Auto-refresh interval (minutes)", min_value=1, max_value=15, value=5)
-refresh_ms = refresh_minutes * 60 * 1000
+st.sidebar.slider(
+    "Auto-refresh interval (minutes)",
+    min_value=1, max_value=15,
+    value=st.session_state.refresh_minutes,
+    key="refresh_minutes"
+)
 
-bucket_choice = st.sidebar.radio("🕒 Select Time Bucket", ["15 min", "30 min", "1 hour"], index=2)
+st.sidebar.radio(
+    "🕒 Select Time Bucket",
+    ["15 min", "30 min", "1 hour"],
+    index=["15 min", "30 min", "1 hour"].index(st.session_state.bucket_choice),
+    key="bucket_choice"
+)
+
+st.sidebar.toggle(
+    "Enable Telegram Alerts",
+    value=st.session_state.enable_telegram_alerts,
+    key="enable_telegram_alerts"
+)
+
+# ====== USE SESSION STATE VALUES ======
+selected_instruments = st.session_state.selected_instruments
+refresh_minutes = st.session_state.refresh_minutes
+bucket_choice = st.session_state.bucket_choice
+enable_telegram_alerts = st.session_state.enable_telegram_alerts
 bucket_minutes = {"15 min": 15, "30 min": 30, "1 hour": 60}[bucket_choice]
-# ✅ NEW: Telegram alert toggle
-enable_telegram_alerts = st.sidebar.toggle("Enable Telegram Alerts", value=True)
 
 # ====== AUTO-REFRESH ======
+refresh_ms = refresh_minutes * 60 * 1000
 st_autorefresh(interval=refresh_ms, limit=None, key="volume-refresh")
 
 # ====== TELEGRAM ALERT ======
@@ -60,10 +94,11 @@ def send_telegram_alert(message):
         "parse_mode": "Markdown"
     }
     try:
-        requests.post(url, data=payload, timeout=10)
+        resp = requests.post(url, data=payload, timeout=10)
+        if resp.status_code != 200:
+            st.error(f"Telegram alert failed: {resp.text}")
     except Exception as e:
-        st.error(f"Telegram alert failed: {e}")
-
+        st.error(f"Telegram alert exception: {e}")
 
 # ====== OANDA DATA FETCH ======
 def fetch_candles(instrument_code, from_time, to_time):

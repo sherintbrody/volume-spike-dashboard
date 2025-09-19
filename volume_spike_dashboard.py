@@ -35,6 +35,7 @@ if "alerted_day" not in st.session_state or st.session_state.alerted_day != toda
     st.session_state.alerted_candles = set()
     st.session_state.alerted_day = today
 
+
 if "alerted_candles" not in st.session_state:
     st.session_state.alerted_candles = set()
 
@@ -110,7 +111,7 @@ def send_telegram_alert(message):
         st.error(f"Telegram alert exception: {e}")
 
 # ====== OANDA DATA FETCH ======
-@st.cache_data(ttl=900)
+@st.cache_data(ttl=600)
 def fetch_candles(instrument_code, from_time, to_time):
     now_utc = datetime.now(UTC)
     from_time = min(from_time, now_utc)
@@ -141,7 +142,7 @@ def get_time_bucket(dt_ist, bucket_size_minutes):
     bucket_end = bucket_start + timedelta(minutes=bucket_size_minutes)
     return f"{bucket_start.strftime('%I:%M %p')}–{bucket_end.strftime('%I:%M %p')}"
     
-@st.cache_data(ttl=900)
+@st.cache_data(ttl=600)
 def compute_bucket_averages(code, bucket_size_minutes):
     bucket_volumes = defaultdict(list)
     today_ist = datetime.now(IST).date()
@@ -222,12 +223,14 @@ def process_instrument(name, code, bucket_size_minutes):
         ])
 
         if c in last_two_candles and over:
-    candle_id = f"{name}_{round(float(c['mid']['o']), 2)}_{c['time'][:16]}"
+    candle_id = f"{name}_{c['time']}"
     if candle_id not in st.session_state.alerted_candles:
         spikes_last_two.append(
             f"{name} {t_ist.strftime('%I:%M %p')} — Vol {vol} ({spike_diff}) {sentiment}"
         )
         st.session_state.alerted_candles.add(candle_id)
+
+
 
 
 

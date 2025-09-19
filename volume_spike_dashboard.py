@@ -39,6 +39,8 @@ st.sidebar.title("🔧 Settings")
 refresh_minutes = st.sidebar.slider("Auto-refresh interval (minutes)", min_value=1, max_value=15, value=5)
 refresh_ms = refresh_minutes * 60 * 1000
 
+exclude_last_5 = st.sidebar.checkbox("Exclude Last 5 Rows", value=False)
+
 # ====== AUTO-REFRESH ======
 st_autorefresh(interval=refresh_ms, limit=None, key="volume-refresh")
 
@@ -183,14 +185,14 @@ def render_table_streamlit(name, rows):
         "Sentiment"
     ]
 
-    # Slice rows before converting to DataFrame
-    trimmed_rows = rows[-15:] if len(rows) > 15 else rows
+    # Apply toggle logic
+    if exclude_last_5 and len(rows) > 5:
+        trimmed_rows = rows[:-5][-15:]
+    else:
+        trimmed_rows = rows[-15:] if len(rows) > 15 else rows
+
     df = pd.DataFrame(trimmed_rows, columns=columns)
-
     st.dataframe(df, use_container_width=True, height=800)
-
-
-
 
 
 

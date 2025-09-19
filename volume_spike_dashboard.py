@@ -100,6 +100,7 @@ def send_telegram_alert(message):
         st.error(f"Telegram alert exception: {e}")
 
 # ====== OANDA DATA FETCH ======
+@st.cache_data(ttl=900)
 def fetch_candles(instrument_code, from_time, to_time):
     now_utc = datetime.now(UTC)
     from_time = min(from_time, now_utc)
@@ -129,7 +130,8 @@ def get_time_bucket(dt_ist, bucket_size_minutes):
     bucket_start = dt_ist.replace(minute=bucket_start_minute, second=0, microsecond=0)
     bucket_end = bucket_start + timedelta(minutes=bucket_size_minutes)
     return f"{bucket_start.strftime('%I:%M %p')}–{bucket_end.strftime('%I:%M %p')}"
-
+    
+@st.cache_data(ttl=900)
 def compute_bucket_averages(code, bucket_size_minutes):
     bucket_volumes = defaultdict(list)
     today_ist = datetime.now(IST).date()

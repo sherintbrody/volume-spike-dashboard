@@ -167,7 +167,7 @@ def process_instrument(name, code):
     return rows, spikes_last_two
 
 def render_table_streamlit(name, rows):
-    st.subheader(f"{name} — Last 30 × 15‑min candles")
+    st.subheader(f"{name} — Last 15 × 15‑min candles")
     st.dataframe(rows, width='stretch', height=800)
 
 

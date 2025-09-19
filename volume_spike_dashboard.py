@@ -20,7 +20,7 @@ INSTRUMENTS = {
 
 THRESHOLD_MULTIPLIER = 1.4
 
-TELEGRAM_BOT_TOKEN = "7860254495:AAG2s2X6M30XDWSHyGGqg2aJmn0xbtg_DfQ"
+TELEGRAM_BOT_TOKEN = "7860254495:AAG2s2X6M30XDWSHyGGq2aJmn0xbtg_DfQ"
 TELEGRAM_CHAT_ID = "7598801380"
 
 IST = pytz.timezone("Asia/Kolkata")
@@ -57,7 +57,6 @@ def send_telegram_alert(message):
         requests.post(url, data=payload, timeout=10)
     except Exception as e:
         st.error(f"Telegram alert failed: {e}")
-
 
 # ====== OANDA DATA FETCH ======
 def fetch_candles(instrument_code, from_time, to_time):
@@ -200,11 +199,6 @@ def render_table_streamlit(name, rows, bucket_minutes):
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Export to CSV",
-        data=csv,
-        file_name=f"{name}_volume_spikes.csv",
-        mime="text/csv"
-    )
-
 # ====== DASHBOARD EXECUTION ======
 def run_volume_check():
     all_spike_msgs = []
@@ -221,18 +215,16 @@ def run_volume_check():
         if spikes:
             all_spike_msgs.extend(spikes)
 
-# Display and send alerts
-if all_spike_msgs:
-    msg_lines = [f"*⚡ Volume Spike Alert — {bucket_minutes} min bucket*"]
-    for line in all_spike_msgs:
-        msg_lines.append(f"• {line}")
-    msg = "\n".join(msg_lines)
-    st.warning(msg)
-    send_telegram_alert(msg)
-else:
-    st.info("ℹ️ No spikes in the last two candles.")
-
-
+    # ✅ Display and send alerts (kept inside the function to avoid NameError)
+    if all_spike_msgs:
+        msg_lines = [f"*⚡ Volume Spike Alert — {bucket_minutes} min bucket*"]
+        for line in all_spike_msgs:
+            msg_lines.append(f"• {line}")
+        msg = "\n".join(msg_lines)
+        st.warning(msg)
+        send_telegram_alert(msg)
+    else:
+        st.info("ℹ️ No spikes in the last two candles.")
 # ====== MAIN ======
 st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")
 
@@ -242,4 +234,5 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 run_volume_check()
+
 

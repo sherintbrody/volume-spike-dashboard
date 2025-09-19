@@ -1,4 +1,5 @@
 import requests
+import streamlit as st
 from datetime import datetime, timedelta, time
 import pytz
 import pandas as pd
@@ -20,8 +21,8 @@ INSTRUMENTS = {
 
 THRESHOLD_MULTIPLIER = 1.4
 
-TELEGRAM_BOT_TOKEN = "8379012727:AAFwwUZH0FN2UNwiS9eJ5DYk1dyTC5k3ygs"
-TELEGRAM_CHAT_ID = "7598801380"
+TELEGRAM_BOT_TOKEN = st.secrets["TELEGRAM_BOT_TOKEN"]
+TELEGRAM_CHAT_ID = st.secrets["TELEGRAM_CHAT_ID"]
 
 IST = pytz.timezone("Asia/Kolkata")
 UTC = pytz.utc
@@ -207,6 +208,8 @@ def render_table_streamlit(name, rows, bucket_minutes):
 
 # ====== DASHBOARD EXECUTION ======
 def run_volume_check():
+    send_telegram_alert("✅ Streamlit Cloud is now using secure secrets.")
+
     all_spike_msgs = []
 
     if not selected_instruments:

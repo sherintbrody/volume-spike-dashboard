@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime, timedelta, time
 import pytz
+import pandas as pd
 from collections import defaultdict
 import wcwidth
 import streamlit as st
@@ -168,7 +169,22 @@ def process_instrument(name, code):
 
 def render_table_streamlit(name, rows):
     st.subheader(f"{name} — Last 15 × 15‑min candles")
-    st.dataframe(rows, width='stretch', height=800)
+
+    columns = [
+        "Time (IST)",
+        "Time Bucket",
+        "Open",
+        "High",
+        "Low",
+        "Close",
+        "Volume",
+        "Spike Δ",
+        "Strength",
+        "Sentiment"
+    ]
+
+    df = pd.DataFrame(rows, columns=columns)
+    st.dataframe(df.tail(15), use_container_width=True, height=800)
 
 
 

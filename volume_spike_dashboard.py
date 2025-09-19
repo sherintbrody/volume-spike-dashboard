@@ -26,6 +26,13 @@ IST = pytz.timezone("Asia/Kolkata")
 UTC = pytz.utc
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
+# ====== INSTRUMENT SELECTION ======
+selected_instruments = st.sidebar.multiselect(
+    "Select Instruments to Monitor",
+    options=list(INSTRUMENTS.keys()),
+    default=list(INSTRUMENTS.keys())
+)
+
 # ====== SIDEBAR CONFIG ======
 st.sidebar.title("🔧 Settings")
 refresh_minutes = st.sidebar.slider("Auto-refresh interval (minutes)", min_value=1, max_value=15, value=5)
@@ -168,19 +175,30 @@ def render_table_streamlit(name, rows):
 # ====== DASHBOARD EXECUTION ======
 def run_volume_check():
     all_spike_msgs = []
-    for name, code in INSTRUMENTS.items():
+
+    # Handle empty selection
+    if not selected_instruments:
+        st.warning("⚠️ No instruments selected. Please choose at least one.")
+        return
+
+    # Loop only over selected instruments
+    for name in selected_instruments:
+        code = INSTRUMENTS[name]
         rows, spikes = process_instrument(name, code)
         if rows:
             render_table_streamlit(name, rows)
         if spikes:
             all_spike_msgs.extend(spikes)
 
+    # Display and optionally send alerts
     if all_spike_msgs:
         msg = "⚡ Spikes Detected Streamlit:\n" + "\n".join(all_spike_msgs)
         st.warning(msg)
-        send_telegram_alert(msg)
+        if enable_alerts:
+            send_telegram_alert(msg)
     else:
         st.info("ℹ️ No spikes in the last two candles.")
+
 
 # ====== MAIN ======
 st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")

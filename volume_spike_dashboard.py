@@ -171,7 +171,7 @@ def run_volume_check():
             all_spike_msgs.extend(spikes)
 
     if all_spike_msgs:
-        msg = "⚡ Volume Spikes Detected:\n" + "\n".join(all_spike_msgs)
+        msg = "⚡ Spikes Detected Streamlit:\n" + "\n".join(all_spike_msgs)
         st.warning(msg)
         send_telegram_alert(msg)
     else:

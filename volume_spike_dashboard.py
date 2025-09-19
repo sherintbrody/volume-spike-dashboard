@@ -168,7 +168,7 @@ def process_instrument(name, code):
     return rows, spikes_last_two
 
 def render_table_streamlit(name, rows):
-    st.subheader(f"{name} — Last 20 × 15‑min candles")
+    st.subheader(f"{name} — Last 15 × 15‑min candles")
 
     columns = [
         "Time (IST)",
@@ -184,10 +184,11 @@ def render_table_streamlit(name, rows):
     ]
 
     # Slice rows before converting to DataFrame
-    trimmed_rows = rows[-20:] if len(rows) > 20 else rows
+    trimmed_rows = rows[-15:] if len(rows) > 15 else rows
     df = pd.DataFrame(trimmed_rows, columns=columns)
 
     st.dataframe(df, use_container_width=True, height=800)
+
 
 
 

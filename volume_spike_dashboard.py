@@ -222,20 +222,16 @@ def process_instrument(name, code, bucket_size_minutes):
             sentiment
         ])
         
-if c in last_two_candles and over:
-    candle_id = f"{name}_{c['time']}"
-    if candle_id not in st.session_state.alerted_candles:
-        spikes_last_two.append(
-            f"{name} {t_ist.strftime('%I:%M %p')} — Vol {vol} ({spike_diff}) {sentiment}"
-        )
-        st.session_state.alerted_candles.add(candle_id)
-
-
-
-
-
+        if c in last_two_candles and over:
+            candle_id = f"{name}_{c['time']}"
+            if candle_id not in st.session_state.alerted_candles:
+                spikes_last_two.append(
+                    f"{name} {t_ist.strftime('%I:%M %p')} — Vol {vol} ({spike_diff}) {sentiment}"
+                )
+                st.session_state.alerted_candles.add(candle_id)
 
     return rows, spikes_last_two
+
 
 def render_table_streamlit(name, rows, bucket_minutes):
     st.subheader(f"{name} — Last 15 × 15‑min candles")

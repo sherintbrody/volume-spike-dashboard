@@ -28,6 +28,16 @@ UTC = pytz.utc
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
 # ====== INITIALIZE SESSION STATE ======
+
+today = datetime.now(IST).date()
+
+if "alerted_day" not in st.session_state or st.session_state.alerted_day != today:
+    st.session_state.alerted_candles = set()
+    st.session_state.alerted_day = today
+
+if "alerted_candles" not in st.session_state:
+    st.session_state.alerted_candles = set()
+
 if "selected_instruments" not in st.session_state:
     st.session_state.selected_instruments = list(INSTRUMENTS.keys())
 
@@ -212,9 +222,14 @@ def process_instrument(name, code, bucket_size_minutes):
         ])
 
         if c in last_two_candles and over:
-            spikes_last_two.append(
-                f"{name} {t_ist.strftime('%I:%M %p')} — Vol {vol} ({spike_diff}) {sentiment}"
-            )
+    candle_id = f"{name}_{round(float(c['mid']['o']), 2)}_{c['time'][:16]}"
+    if candle_id not in st.session_state.alerted_candles:
+        spikes_last_two.append(
+            f"{name} {t_ist.strftime('%I:%M %p')} — Vol {vol} ({spike_diff}) {sentiment}"
+        )
+        st.session_state.alerted_candles.add(candle_id)
+
+
 
     return rows, spikes_last_two
 

@@ -42,12 +42,17 @@ refresh_ms = refresh_minutes * 60 * 1000
 
 bucket_choice = st.sidebar.radio("🕒 Select Time Bucket", ["15 min", "30 min", "1 hour"], index=2)
 bucket_minutes = {"15 min": 15, "30 min": 30, "1 hour": 60}[bucket_choice]
+# ✅ NEW: Telegram alert toggle
+enable_telegram_alerts = st.sidebar.toggle("Enable Telegram Alerts", value=True)
 
 # ====== AUTO-REFRESH ======
 st_autorefresh(interval=refresh_ms, limit=None, key="volume-refresh")
 
 # ====== TELEGRAM ALERT ======
 def send_telegram_alert(message):
+    if not enable_telegram_alerts:
+        st.info("📴 Telegram alerts are OFF")
+        return
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -58,6 +63,7 @@ def send_telegram_alert(message):
         requests.post(url, data=payload, timeout=10)
     except Exception as e:
         st.error(f"Telegram alert failed: {e}")
+
 
 # ====== OANDA DATA FETCH ======
 def fetch_candles(instrument_code, from_time, to_time):

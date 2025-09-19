@@ -207,7 +207,7 @@ def run_volume_check():
         code = INSTRUMENTS[name]
         rows, spikes = process_instrument(name, code)
         if rows:
-            render_table_streamlit(name, rows[-20:])
+            render_table_streamlit(name, rows)
 
 
         if spikes:

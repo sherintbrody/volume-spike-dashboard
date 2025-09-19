@@ -196,9 +196,13 @@ def render_table_streamlit(name, rows, bucket_minutes):
 
     st.dataframe(df, use_container_width=True, height=800)
 
-    csv = df.to_csv(index=False).encode('utf-8')
+       csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Export to CSV",
+        data=csv,
+        file_name=f"{name}_volume_spikes.csv",
+        mime="text/csv"
+    )  # ✅ properly closed
 # ====== DASHBOARD EXECUTION ======
 def run_volume_check():
     all_spike_msgs = []

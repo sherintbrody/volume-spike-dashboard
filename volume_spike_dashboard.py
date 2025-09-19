@@ -184,18 +184,20 @@ def render_table_streamlit(name, rows):
         "Sentiment"
     ]
 
-    # Always slice to last 15 rows
     trimmed_rows = rows[-15:] if len(rows) > 15 else rows
     df = pd.DataFrame(trimmed_rows, columns=columns)
 
     st.dataframe(df, use_container_width=True, height=800)
+
+    # ✅ Define CSV before using it
     csv = df.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="📥 Export to CSV",
-    data=csv,
-    file_name=f"{name}_volume_spikes.csv",
-    mime="text/csv"
-)
+    st.download_button(
+        label="📥 Export to CSV",
+        data=csv,
+        file_name=f"{name}_volume_spikes.csv",
+        mime="text/csv"
+    )
+
 
 
 

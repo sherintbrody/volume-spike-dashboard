@@ -171,12 +171,12 @@ def process_instrument(name, code, bucket_size_minutes):
 
     return rows, spikes_last_two
 
-def render_table_streamlit(name, rows):
+def render_table_streamlit(name, rows, bucket_minutes):
     st.subheader(f"{name} — Last 15 × 15‑min candles")
 
     columns = [
         "Time (IST)",
-        "Time Bucket",
+        f"Time Bucket ({bucket_minutes} min)",
         "Open",
         "High",
         "Low",
@@ -212,7 +212,7 @@ def run_volume_check():
         code = INSTRUMENTS[name]
         rows, spikes = process_instrument(name, code, bucket_minutes)
         if rows:
-            render_table_streamlit(name, rows)
+            render_table_streamlit(name, rows, bucket_minutes)
         if spikes:
             all_spike_msgs.extend(spikes)
 

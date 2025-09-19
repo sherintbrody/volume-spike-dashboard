@@ -26,8 +26,13 @@ IST = pytz.timezone("Asia/Kolkata")
 UTC = pytz.utc
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
-# ====== AUTO-REFRESH EVERY 5 MINUTES ======
-st_autorefresh(interval=300_000, limit=None, key="volume-refresh")
+# ====== SIDEBAR CONFIG ======
+st.sidebar.title("🔧 Settings")
+refresh_minutes = st.sidebar.slider("Auto-refresh interval (minutes)", min_value=1, max_value=15, value=5)
+refresh_ms = refresh_minutes * 60 * 1000
+
+# ====== AUTO-REFRESH ======
+st_autorefresh(interval=refresh_ms, limit=None, key="volume-refresh")
 
 # ====== TELEGRAM ALERT ======
 def send_telegram_alert(message):

@@ -225,5 +225,8 @@ def run_volume_check():
 
 # ====== MAIN ======
 st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")
-st.title("📊 Volume Anomaly Detector")
+st.markdown("""
+<h1 style='text-align: center; color: #2E8B57;'>📊 Volume Anomaly Detector</h1>
+<hr style='border:1px solid #ccc;'>
+""", unsafe_allow_html=True)
 run_volume_check()

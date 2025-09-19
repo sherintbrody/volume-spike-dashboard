@@ -213,4 +213,24 @@ def run_volume_check():
         rows, spikes = process_instrument(name, code, bucket_minutes)
         if rows:
             render_table_streamlit(name, rows)
-        if
+        if spikes:
+            all_spike_msgs.extend(spikes)
+
+    # Display and send alerts
+    if all_spike_msgs:
+        msg = "⚡ Spikes Detected Streamlit:\n" + "\n".join(all_spike_msgs)
+        st.warning(msg)
+        send_telegram_alert(msg)
+    else:
+        st.info("ℹ️ No spikes in the last two candles.")
+
+# ====== MAIN ======
+st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")
+
+st.markdown("""
+<h1 style='text-align: center; color: #2E8B57;'>📊 Volume Anomaly Detector</h1>
+<hr style='border:1px solid #ccc;'>
+""", unsafe_allow_html=True)
+
+run_volume_check()
+

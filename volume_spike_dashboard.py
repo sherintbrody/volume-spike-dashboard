@@ -8,8 +8,8 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
 # ====== CONFIG ======
-API_KEY = "5a0f5c6147a2bd7c832d63a6252f0c01-041561ca55b1549327e8c00f3d645f13"
-ACCOUNT_ID = "101-004-37091392-001"
+API_KEY = "your_oanda_api_key"
+ACCOUNT_ID = "your_oanda_account_id"
 BASE_URL = "https://api-fxpractice.oanda.com/v3"
 
 INSTRUMENTS = {
@@ -20,25 +20,27 @@ INSTRUMENTS = {
 
 THRESHOLD_MULTIPLIER = 1.4
 
-TELEGRAM_BOT_TOKEN = "7860254495:AAG2s2X6M30XDWSHyGGqg2aJmn0xbtg_DfQ"
-TELEGRAM_CHAT_ID = "7598801380"
+TELEGRAM_BOT_TOKEN = "your_telegram_bot_token"
+TELEGRAM_CHAT_ID = "your_telegram_chat_id"
 
 IST = pytz.timezone("Asia/Kolkata")
 UTC = pytz.utc
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
-# ====== INSTRUMENT SELECTION ======
+# ====== SIDEBAR CONFIG ======
+st.sidebar.title("🔧 Settings")
+
 selected_instruments = st.sidebar.multiselect(
     "Select Instruments to Monitor",
     options=list(INSTRUMENTS.keys()),
     default=list(INSTRUMENTS.keys())
 )
 
-# ====== SIDEBAR CONFIG ======
-st.sidebar.title("🔧 Settings")
 refresh_minutes = st.sidebar.slider("Auto-refresh interval (minutes)", min_value=1, max_value=15, value=5)
 refresh_ms = refresh_minutes * 60 * 1000
 
+bucket_choice = st.sidebar.radio("🕒 Select Time Bucket", ["15 min", "30 min", "1 hour"], index=2)
+bucket_minutes = {"15 min": 15, "30 min": 30, "1 hour": 60}[bucket_choice]
 
 # ====== AUTO-REFRESH ======
 st_autorefresh(interval=refresh_ms, limit=None, key="volume-refresh")
@@ -77,12 +79,13 @@ def fetch_candles(instrument_code, from_time, to_time):
     return resp.json().get("candles", [])
 
 # ====== UTILITIES ======
-def get_time_bucket(dt_ist):
-    bucket_start = dt_ist.replace(minute=0, second=0, microsecond=0)
-    bucket_end = bucket_start + timedelta(hours=1)
+def get_time_bucket(dt_ist, bucket_size_minutes):
+    bucket_start_minute = (dt_ist.minute // bucket_size_minutes) * bucket_size_minutes
+    bucket_start = dt_ist.replace(minute=bucket_start_minute, second=0, microsecond=0)
+    bucket_end = bucket_start + timedelta(minutes=bucket_size_minutes)
     return f"{bucket_start.strftime('%I:%M %p')}–{bucket_end.strftime('%I:%M %p')}"
 
-def compute_bucket_averages(code):
+def compute_bucket_averages(code, bucket_size_minutes):
     bucket_volumes = defaultdict(list)
     today_ist = datetime.now(IST).date()
     now_utc = datetime.now(UTC)
@@ -99,7 +102,7 @@ def compute_bucket_averages(code):
         for c in candles:
             t_utc = datetime.strptime(c["time"], "%Y-%m-%dT%H:%M:%S.%f000Z")
             t_ist = t_utc.replace(tzinfo=UTC).astimezone(IST)
-            bucket = get_time_bucket(t_ist)
+            bucket = get_time_bucket(t_ist, bucket_size_minutes)
             bucket_volumes[bucket].append(c["volume"])
 
     return {b: (sum(vs) / len(vs)) for b, vs in bucket_volumes.items() if vs}
@@ -121,8 +124,8 @@ def get_spike_bar(multiplier):
     return pad_display(bar_str, 5)
 
 # ====== CORE PROCESS ======
-def process_instrument(name, code):
-    bucket_avg = compute_bucket_averages(code)
+def process_instrument(name, code, bucket_size_minutes):
+    bucket_avg = compute_bucket_averages(code, bucket_size_minutes)
     now_utc = datetime.now(UTC)
     from_time = now_utc - timedelta(minutes=15 * 30)
     candles = fetch_candles(code, from_time, now_utc)
@@ -137,7 +140,7 @@ def process_instrument(name, code):
         t_utc = datetime.strptime(c["time"], "%Y-%m-%dT%H:%M:%S.%f000Z")
         t_ist = t_utc.replace(tzinfo=UTC).astimezone(IST)
 
-        bucket = get_time_bucket(t_ist)
+        bucket = get_time_bucket(t_ist, bucket_size_minutes)
         vol = c["volume"]
         avg = bucket_avg.get(bucket, 0)
         threshold = avg * THRESHOLD_MULTIPLIER if avg else 0
@@ -189,7 +192,6 @@ def render_table_streamlit(name, rows):
 
     st.dataframe(df, use_container_width=True, height=800)
 
-    # ✅ Define CSV before using it
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Export to CSV",
@@ -198,45 +200,17 @@ def render_table_streamlit(name, rows):
         mime="text/csv"
     )
 
-
-
-
-
-
 # ====== DASHBOARD EXECUTION ======
 def run_volume_check():
     all_spike_msgs = []
 
-    # Handle empty selection
     if not selected_instruments:
         st.warning("⚠️ No instruments selected. Please choose at least one.")
         return
 
-    # Loop only over selected instruments
     for name in selected_instruments:
         code = INSTRUMENTS[name]
-        rows, spikes = process_instrument(name, code)
+        rows, spikes = process_instrument(name, code, bucket_minutes)
         if rows:
             render_table_streamlit(name, rows)
-
-
         if spikes:
-            all_spike_msgs.extend(spikes)
-
-    # Display and send alerts
-    if all_spike_msgs:
-        msg = "⚡ Spikes Detected Streamlit:\n" + "\n".join(all_spike_msgs)
-        st.warning(msg)
-        send_telegram_alert(msg)
-    else:
-        st.info("ℹ️ No spikes in the last two candles.")
-
-
-
-# ====== MAIN ======
-st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")
-st.markdown("""
-<h1 style='text-align: center; color: #2E8B57;'>📊 Volume Anomaly Detector</h1>
-<hr style='border:1px solid #ccc;'>
-""", unsafe_allow_html=True)
-run_volume_check()

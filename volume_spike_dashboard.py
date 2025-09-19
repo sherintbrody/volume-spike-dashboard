@@ -208,7 +208,6 @@ def render_table_streamlit(name, rows, bucket_minutes):
 
 # ====== DASHBOARD EXECUTION ======
 def run_volume_check():
-    send_telegram_alert("✅ Streamlit Cloud is now using secure secrets.")
 
     all_spike_msgs = []
 

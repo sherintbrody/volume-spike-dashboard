@@ -213,4 +213,14 @@ def run_volume_check():
         rows, spikes = process_instrument(name, code, bucket_minutes)
         if rows:
             render_table_streamlit(name, rows)
+
         if spikes:
+            all_spike_msgs.extend(spikes)  # ✅ This line was missing
+
+    # Display and send alerts
+    if all_spike_msgs:
+        msg = "⚡ Spikes Detected Streamlit:\n" + "\n".join(all_spike_msgs)
+        st.warning(msg)
+        send_telegram_alert(msg)
+    else:
+        st.info("ℹ️ No spikes in the last two candles.")

@@ -183,23 +183,12 @@ def render_table_streamlit(name, rows):
         "Sentiment"
     ]
 
-    # Convert to DataFrame
-    df = pd.DataFrame(rows, columns=columns)
+    # Slice rows before converting to DataFrame
+    trimmed_rows = rows[-15:] if len(rows) > 15 else rows
+    df = pd.DataFrame(trimmed_rows, columns=columns)
 
-    # Strip whitespace from string fields
-    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    st.dataframe(df, use_container_width=True, height=800)
 
-    # Drop rows where all values are empty or NaN
-    df = df.dropna(how="all")
-
-    # Drop rows where Volume is missing or zero
-    df = df[df["Volume"].notna() & (df["Volume"] > 0)]
-
-    # Drop rows where Time is missing (optional)
-    df = df[df["Time (IST)"].notna()]
-
-    # Display last 15 clean rows
-    st.dataframe(df.tail(15), use_container_width=True, height=800)
 
 
 

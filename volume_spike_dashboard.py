@@ -1,4 +1,4 @@
-import requests
+import requests, json, os
 import streamlit as st
 from datetime import datetime, timedelta, time
 import pytz
@@ -19,7 +19,6 @@ INSTRUMENTS = {
 }
 
 THRESHOLD_MULTIPLIER = 1.4
-
 TELEGRAM_BOT_TOKEN = st.secrets["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = st.secrets["TELEGRAM_CHAT_ID"]
 
@@ -27,32 +26,44 @@ IST = pytz.timezone("Asia/Kolkata")
 UTC = pytz.utc
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
-# ====== INITIALIZE SESSION STATE ======
+ALERT_STATE_FILE = "last_alert_state.json"
+ALERT_DATE_FILE = "last_alert_date.txt"
 
-today = datetime.now(IST).date()
+# ====== ALERT MEMORY ======
+def load_alerted_candles():
+    if os.path.exists(ALERT_STATE_FILE):
+        try:
+            with open(ALERT_STATE_FILE, "r") as f:
+                return set(json.load(f))
+        except:
+            return set()
+    return set()
 
-if "alerted_day" not in st.session_state or st.session_state.alerted_day != today:
-    st.session_state.alerted_candles = set()
-    st.session_state.alerted_day = today
+def save_alerted_candles(alerted_set):
+    with open(ALERT_STATE_FILE, "w") as f:
+        json.dump(list(alerted_set), f)
 
-
-if "alerted_candles" not in st.session_state:
-    st.session_state.alerted_candles = set()
-
-if "selected_instruments" not in st.session_state:
-    st.session_state.selected_instruments = list(INSTRUMENTS.keys())
-
-if "refresh_minutes" not in st.session_state:
-    st.session_state.refresh_minutes = 5
-
-if "bucket_choice" not in st.session_state:
-    st.session_state.bucket_choice = "1 hour"
-
-if "enable_telegram_alerts" not in st.session_state:
-    st.session_state.enable_telegram_alerts = True
+def reset_if_new_day():
+    today = datetime.now(IST).date().isoformat()
+    if os.path.exists(ALERT_DATE_FILE):
+        with open(ALERT_DATE_FILE, "r") as f:
+            last = f.read().strip()
+        if last != today:
+            open(ALERT_STATE_FILE, "w").write("[]")
+    with open(ALERT_DATE_FILE, "w") as f:
+        f.write(today)
 
 # ====== SIDEBAR CONFIG ======
 st.sidebar.title("🔧 Settings")
+
+if "selected_instruments" not in st.session_state:
+    st.session_state.selected_instruments = list(INSTRUMENTS.keys())
+if "refresh_minutes" not in st.session_state:
+    st.session_state.refresh_minutes = 5
+if "bucket_choice" not in st.session_state:
+    st.session_state.bucket_choice = "1 hour"
+if "enable_telegram_alerts" not in st.session_state:
+    st.session_state.enable_telegram_alerts = True
 
 st.sidebar.multiselect(
     "Select Instruments to Monitor",
@@ -81,20 +92,13 @@ st.sidebar.toggle(
     key="enable_telegram_alerts"
 )
 
-# ====== USE SESSION STATE VALUES ======
-selected_instruments = st.session_state.selected_instruments
-refresh_minutes = st.session_state.refresh_minutes
-bucket_choice = st.session_state.bucket_choice
-enable_telegram_alerts = st.session_state.enable_telegram_alerts
-bucket_minutes = {"15 min": 15, "30 min": 30, "1 hour": 60}[bucket_choice]
-
 # ====== AUTO-REFRESH ======
-refresh_ms = refresh_minutes * 60 * 1000
+refresh_ms = st.session_state.refresh_minutes * 60 * 1000
 st_autorefresh(interval=refresh_ms, limit=None, key="volume-refresh")
 
 # ====== TELEGRAM ALERT ======
 def send_telegram_alert(message):
-    if not enable_telegram_alerts:
+    if not st.session_state.enable_telegram_alerts:
         st.info("📴 Telegram alerts are OFF")
         return
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -141,7 +145,7 @@ def get_time_bucket(dt_ist, bucket_size_minutes):
     bucket_start = dt_ist.replace(minute=bucket_start_minute, second=0, microsecond=0)
     bucket_end = bucket_start + timedelta(minutes=bucket_size_minutes)
     return f"{bucket_start.strftime('%I:%M %p')}–{bucket_end.strftime('%I:%M %p')}"
-    
+
 @st.cache_data(ttl=600)
 def compute_bucket_averages(code, bucket_size_minutes):
     bucket_volumes = defaultdict(list)
@@ -182,7 +186,7 @@ def get_spike_bar(multiplier):
     return pad_display(bar_str, 5)
 
 # ====== CORE PROCESS ======
-def process_instrument(name, code, bucket_size_minutes):
+def process_instrument(name, code, bucket_size_minutes, alerted_candles):
     bucket_avg = compute_bucket_averages(code, bucket_size_minutes)
     now_utc = datetime.now(UTC)
     from_time = now_utc - timedelta(minutes=15 * 30)
@@ -207,6 +211,7 @@ def process_instrument(name, code, bucket_size_minutes):
 
         spike_diff = f"🔺{vol - int(threshold)}" if over else ""
         strength = get_spike_bar(mult) if over else pad_display("", 5)
+        sentiment = get_sentiment
         sentiment = get_sentiment(c)
 
         rows.append([
@@ -221,31 +226,26 @@ def process_instrument(name, code, bucket_size_minutes):
             strength,
             sentiment
         ])
+
         if c in last_two_candles and over:
             candle_id = f"{name}_{c['time']}_{round(float(c['mid']['o']), 2)}"
-            if candle_id not in st.session_state.alerted_candles:
+            if candle_id not in alerted_candles:
                 spikes_last_two.append(
                     f"{name} {t_ist.strftime('%I:%M %p')} — Vol {vol} ({spike_diff}) {sentiment}"
                 )
-                st.session_state.alerted_candles.add(candle_id)
+                alerted_candles.add(candle_id)
 
     return rows, spikes_last_two
-        
 
+# ====== TABLE RENDERING ======
 def render_table_streamlit(name, rows, bucket_minutes):
     st.subheader(f"{name} — Last 15 × 15‑min candles")
 
     columns = [
         "Time (IST)",
         f"Time Bucket ({bucket_minutes} min)",
-        "Open",
-        "High",
-        "Low",
-        "Close",
-        "Volume",
-        "Spike Δ",
-        "Strength",
-        "Sentiment"
+        "Open", "High", "Low", "Close",
+        "Volume", "Spike Δ", "Strength", "Sentiment"
     ]
 
     trimmed_rows = rows[-15:] if len(rows) > 15 else rows
@@ -253,7 +253,6 @@ def render_table_streamlit(name, rows, bucket_minutes):
 
     st.dataframe(df, use_container_width=True, height=800)
 
-    # ✅ This must align with st.dataframe(), not be over‑indented
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Export to CSV",
@@ -264,22 +263,24 @@ def render_table_streamlit(name, rows, bucket_minutes):
 
 # ====== DASHBOARD EXECUTION ======
 def run_volume_check():
-
+    reset_if_new_day()
+    alerted_candles = load_alerted_candles()
     all_spike_msgs = []
 
-    if not selected_instruments:
+    if not st.session_state.selected_instruments:
         st.warning("⚠️ No instruments selected. Please choose at least one.")
         return
 
-    for name in selected_instruments:
+    bucket_minutes = {"15 min": 15, "30 min": 30, "1 hour": 60}[st.session_state.bucket_choice]
+
+    for name in st.session_state.selected_instruments:
         code = INSTRUMENTS[name]
-        rows, spikes = process_instrument(name, code, bucket_minutes)
+        rows, spikes = process_instrument(name, code, bucket_minutes, alerted_candles)
         if rows:
             render_table_streamlit(name, rows, bucket_minutes)
         if spikes:
             all_spike_msgs.extend(spikes)
 
-    # ✅ Display and send alerts (kept inside the function to avoid NameError)
     if all_spike_msgs:
         msg_lines = [f"*⚡ Volume Spike Alert — {bucket_minutes} min bucket*"]
         for line in all_spike_msgs:
@@ -289,6 +290,9 @@ def run_volume_check():
         send_telegram_alert(msg)
     else:
         st.info("ℹ️ No spikes in the last two candles.")
+
+    save_alerted_candles(alerted_candles)
+
 # ====== MAIN ======
 st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")
 
@@ -298,5 +302,3 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 run_volume_check()
-
-

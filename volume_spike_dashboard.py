@@ -49,7 +49,8 @@ def reset_if_new_day():
         with open(ALERT_DATE_FILE, "r") as f:
             last = f.read().strip()
         if last != today:
-            open(ALERT_STATE_FILE, "w").write("[]")
+            with open(ALERT_STATE_FILE, "w") as f:
+                f.write("[]")
     with open(ALERT_DATE_FILE, "w") as f:
         f.write(today)
 
@@ -162,7 +163,10 @@ def compute_bucket_averages(code, bucket_size_minutes):
 
         candles = fetch_candles(code, start_utc, end_utc)
         for c in candles:
-            t_utc = datetime.strptime(c["time"], "%Y-%m-%dT%H:%M:%S.%f000Z")
+            try:
+                t_utc = datetime.strptime(c["time"], "%Y-%m-%dT%H:%M:%S.%f000Z")
+            except ValueError:
+                t_utc = datetime.strptime(c["time"], "%Y-%m-%dT%H:%M:%S.000Z")
             t_ist = t_utc.replace(tzinfo=UTC).astimezone(IST)
             bucket = get_time_bucket(t_ist, bucket_size_minutes)
             bucket_volumes[bucket].append(c["volume"])
@@ -196,7 +200,7 @@ def process_instrument(name, code, bucket_size_minutes, alerted_candles):
 
     rows = []
     spikes_last_two = []
-    last_two_candles = candles[-2:] if len(candles) >= 2 else candles
+    last_two_candles = candles[-2:] if len(candles) >= 2 else 
 
     for c in candles:
         t_utc = datetime.strptime(c["time"], "%Y-%m-%dT%H:%M:%S.%f000Z")

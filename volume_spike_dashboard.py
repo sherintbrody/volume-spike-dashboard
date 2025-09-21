@@ -200,7 +200,7 @@ def process_instrument(name, code, bucket_size_minutes, alerted_candles):
 
     rows = []
     spikes_last_two = []
-    last_two_candles = candles[-2:] if len(candles) >= 2 else 
+    last_two_candles = candles[-2:] if len(candles) >= 2 else candles 
 
     for c in candles:
         t_utc = datetime.strptime(c["time"], "%Y-%m-%dT%H:%M:%S.%f000Z")

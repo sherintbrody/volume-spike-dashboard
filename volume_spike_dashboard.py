@@ -256,8 +256,8 @@ def render_table_streamlit(name, rows, bucket_minutes):
     trimmed_rows = rows[-15:] if len(rows) > 15 else rows
     df = pd.DataFrame(trimmed_rows, columns=columns)
 
-    st.dataframe(df, use_container_width=True, height=800)
-
+    st.dataframe(df, width="stretch", height=800)
+    
     csv = df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Export to CSV",

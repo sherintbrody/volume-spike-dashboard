@@ -64,7 +64,7 @@ if "refresh_minutes" not in st.session_state:
 if "bucket_choice" not in st.session_state:
     st.session_state.bucket_choice = "1 hour"
 if "enable_telegram_alerts" not in st.session_state:
-    st.session_state.enable_telegram_alerts = True
+    st.session_state.enable_telegram_alerts = False
 
 st.sidebar.multiselect(
     "Select Instruments to Monitor",
@@ -92,6 +92,7 @@ st.sidebar.toggle(
     value=st.session_state.enable_telegram_alerts,
     key="enable_telegram_alerts"
 )
+
 
 # ====== AUTO-REFRESH ======
 refresh_ms = st.session_state.refresh_minutes * 60 * 1000

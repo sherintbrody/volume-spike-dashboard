@@ -82,7 +82,7 @@ a.streamlit-button-link {
     font-weight: bold;
 }
 </style>
-<a class="streamlit-button-link" href="https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/">🔁 Go to Backtest Dashboard</a>
+<a class="streamlit-button-link" href="https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/">🔁Backtest</a>
 """, unsafe_allow_html=True)
 
 

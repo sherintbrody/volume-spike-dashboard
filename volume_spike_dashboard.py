@@ -70,7 +70,12 @@ import streamlit.components.v1 as components
 
 with st.sidebar:
     st.markdown("### 🔀 Switch Dashboard")
-    st.markdown("[🔁 Go to Backtest Dashboard](https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/)")
+    st.markdown("""
+        <a href="https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/" target="_self">
+            🔁 Go to Backtest Dashboard
+        </a>
+    """, unsafe_allow_html=True)
+
 
 
 

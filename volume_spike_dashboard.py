@@ -93,6 +93,14 @@ st.sidebar.toggle(
     key="enable_telegram_alerts"
 )
 
+st.sidebar.slider(
+    "📈 Threshold Multiplier",
+    min_value=1.0,
+    max_value=3.0,
+    step=0.1,
+    value=1.4,
+    key="threshold_multiplier"
+)
 
 # ====== AUTO-REFRESH ======
 refresh_ms = st.session_state.refresh_minutes * 60 * 1000
@@ -210,7 +218,8 @@ def process_instrument(name, code, bucket_size_minutes, alerted_candles):
         bucket = get_time_bucket(t_ist, bucket_size_minutes)
         vol = c["volume"]
         avg = bucket_avg.get(bucket, 0)
-        threshold = avg * THRESHOLD_MULTIPLIER if avg else 0
+        threshold_multiplier = st.session_state.threshold_multiplier
+        threshold = avg * threshold_multiplier if avg else 0
         over = (threshold > 0 and vol > threshold)
         mult = (vol / threshold) if over and threshold > 0 else 0
 

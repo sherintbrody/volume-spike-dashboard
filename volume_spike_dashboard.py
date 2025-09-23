@@ -66,9 +66,8 @@ if "bucket_choice" not in st.session_state:
 if "enable_telegram_alerts" not in st.session_state:
     st.session_state.enable_telegram_alerts = False
 
-with st.sidebar:
-    st.markdown("### 🔀 Switch Dashboard")
-    st.markdown("[🔁 Go to Backtest Dashboard](https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/)")
+if st.sidebar.button("🧪 Switch to Backtest"):
+    st.markdown("<meta http-equiv='refresh' content='0; url=https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/'>", unsafe_allow_html=True)
 
 st.sidebar.multiselect(
     "Select Instruments to Monitor",

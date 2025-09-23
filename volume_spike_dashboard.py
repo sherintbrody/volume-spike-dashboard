@@ -69,21 +69,21 @@ if "enable_telegram_alerts" not in st.session_state:
 import streamlit.components.v1 as components
 
 with st.sidebar:
-    st.sidebar.markdown("""
-<style>
-a.streamlit-button-link {
-    display: block;
-    background-color: #2E8B57;
-    color: white;
-    padding: 0.5em;
-    text-align: center;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-}
-</style>
-<a class="streamlit-button-link" href="https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/">🔁Backtest</a>
-""", unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    a.streamlit-button-link {
+        display: block;
+        background-color: #2E8B57;
+        color: white;
+        padding: 0.5em;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+    </style>
+    <a class="streamlit-button-link" href="https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/" target="_self">🔁Backtest</a>
+    """, unsafe_allow_html=True)
 
 
 

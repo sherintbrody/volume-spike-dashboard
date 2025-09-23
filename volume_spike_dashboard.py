@@ -299,6 +299,51 @@ def run_volume_check():
     save_alerted_candles(alerted_candles)
 
 # ====== MAIN ======
+st.markdown("""
+<style>
+/* Center the main title */
+h1 {
+    text-align: center;
+    color: #2E8B57;
+    font-size: 2.5em;
+    margin-bottom: 0.2em;
+}
+
+/* Style sidebar elements */
+section[data-testid="stSidebar"] {
+    background-color: #f0f4f8;
+    padding: 1em;
+    border-right: 2px solid #ccc;
+}
+
+/* Style warning/info messages */
+div.stAlert {
+    border-radius: 8px;
+    padding: 1em;
+    font-size: 1.1em;
+}
+
+/* Style data table headers */
+thead tr th {
+    background-color: #2E8B57;
+    color: white;
+    font-weight: bold;
+}
+
+/* Style download button */
+button[data-testid="baseButton-download"] {
+    background-color: #2E8B57;
+    color: white;
+    border-radius: 6px;
+    padding: 0.5em 1em;
+    font-weight: bold;
+}
+
+/* Hide Streamlit footer */
+footer {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
+
 st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")
 
 st.markdown("""

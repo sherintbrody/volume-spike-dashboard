@@ -70,7 +70,7 @@ import streamlit.components.v1 as components
 
 if st.sidebar.button("🧪 Switch to Backtest"):
     components.html(
-        """<script>window.location.href = "https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/";</script>""",
+        """<script>window.location.href = https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/""",
         height=0
     )
 

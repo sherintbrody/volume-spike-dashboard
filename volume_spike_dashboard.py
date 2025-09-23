@@ -298,7 +298,12 @@ def run_volume_check():
 
     save_alerted_candles(alerted_candles)
 
-# ====== MAIN ======
+
+
+# ====== PAGE CONFIG ======
+st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")
+
+# ====== CSS INJECTION ======
 st.markdown("""
 <style>
 /* Center the main title */
@@ -317,7 +322,7 @@ section[data-testid="stSidebar"] {
 }
 
 /* Style warning/info messages */
-div.stAlert {
+div[data-testid="stAlert"] {
     border-radius: 8px;
     padding: 1em;
     font-size: 1.1em;
@@ -344,11 +349,11 @@ footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="Volume Spike Dashboard", layout="wide")
-
+# ====== HEADER ======
 st.markdown("""
-<h1 style='text-align: center; color: #2E8B57;'>📊 Volume Anomaly Detector</h1>
+<h1>📊 Volume Anomaly Detector</h1>
 <hr style='border:1px solid #ccc;'>
 """, unsafe_allow_html=True)
 
+# ====== MAIN EXECUTION ======
 run_volume_check()

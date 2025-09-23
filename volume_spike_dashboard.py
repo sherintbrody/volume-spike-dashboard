@@ -66,12 +66,14 @@ if "bucket_choice" not in st.session_state:
 if "enable_telegram_alerts" not in st.session_state:
     st.session_state.enable_telegram_alerts = False
 
+import streamlit.components.v1 as components
+
 if st.sidebar.button("🧪 Switch to Backtest"):
-    st.markdown("""
-        <script>
-            window.location.href = "https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/";
-        </script>
-    """, unsafe_allow_html=True)
+    components.html(
+        """<script>window.location.href = "https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/";</script>""",
+        height=0
+    )
+
 
 
 

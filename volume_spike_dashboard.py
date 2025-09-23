@@ -93,6 +93,25 @@ st.sidebar.toggle(
     key="enable_telegram_alerts"
 )
 
+st.sidebar.markdown("### 📜 Spike History")
+
+def load_spike_history():
+    if os.path.exists(ALERT_STATE_FILE):
+        try:
+            with open(ALERT_STATE_FILE, "r") as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+spike_history = load_spike_history()
+
+if spike_history:
+    df_history = pd.DataFrame(spike_history, columns=["Candle ID"])
+    st.sidebar.dataframe(df_history, height=300)
+else:
+    st.sidebar.info("No spike history recorded yet.")
+
 
 # ====== AUTO-REFRESH ======
 refresh_ms = st.session_state.refresh_minutes * 60 * 1000

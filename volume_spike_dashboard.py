@@ -86,13 +86,6 @@ a.streamlit-button-link {
 """, unsafe_allow_html=True)
 
 
-with st.sidebar:
-    st.markdown("### 🔀 Switch Dashboard")
-    st.markdown("[🔁 Go to Backtest Dashboard](https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/)")
-
-
-
-
 
 st.sidebar.multiselect(
     "Select Instruments to Monitor",

@@ -68,11 +68,12 @@ if "enable_telegram_alerts" not in st.session_state:
 
 import streamlit.components.v1 as components
 
-if st.sidebar.button("🧪 Switch to Backtest"):
-    components.html(
-        """<script>window.location.href = https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/"""",
-        height=0
-    )
+st.sidebar.markdown("""
+<a href="https://hxflhwhp3xdewpmfgnoa7e.streamlit.app/" target="_self">
+    <button style="width:100%;padding:0.5em;font-size:16px;">🧪 Switch to Backtest</button>
+</a>
+""", unsafe_allow_html=True)
+
 
 
 

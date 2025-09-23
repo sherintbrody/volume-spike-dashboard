@@ -93,33 +93,6 @@ st.sidebar.toggle(
     key="enable_telegram_alerts"
 )
 
-# ====== SPIKE HISTORY VIEWER ======
-st.sidebar.markdown("### 📜 Spike History")
-
-def load_spike_history():
-    if os.path.exists(ALERT_STATE_FILE):
-        try:
-            with open(ALERT_STATE_FILE, "r") as f:
-                return json.load(f)
-        except:
-            return []
-    return []
-
-spike_history = load_spike_history()
-
-if spike_history:
-    df_history = pd.DataFrame(spike_history, columns=["Candle ID"])
-    st.sidebar.dataframe(df_history, height=300)
-    csv = df_history.to_csv(index=False).encode("utf-8")
-    st.sidebar.download_button("📥 Export History", csv, "spike_history.csv", "text/csv")
-else:
-    st.sidebar.info("No spike history recorded yet.")
-
-if st.sidebar.button("🧹 Clear Spike History"):
-    with open(ALERT_STATE_FILE, "w") as f:
-        f.write("[]")
-    st.sidebar.success("Spike history cleared.")
-
 
 # ====== AUTO-REFRESH ======
 refresh_ms = st.session_state.refresh_minutes * 60 * 1000
